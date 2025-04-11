@@ -1,42 +1,23 @@
-# Alpha Relations Matrix Project
+# Relax Declarative Constraints
 
-This project is designed to generate an alpha relations matrix from a Petri net model provided in PNML format. The alpha relations matrix is useful for analyzing the behavior of the Petri net and understanding the relationships between transitions.
+This project provides a pipeline for processing PNML files, visualizing Petri net models, generating alpha relations matrices, and relaxing declarative constraints.
 
 ## Project Structure
 
-```
-alpha-relations-matrix-project
-├── data
-│   └── model_d.pnml          # Petri net model in PNML format
-├── notebooks
-│   └── generate_alpha_relations_matrix.ipynb  # Jupyter Notebook for generating the matrix
-├── src
-│   ├── create_alpha_relations_matrix.py        # Main logic for creating the alpha relations matrix
-│   └── utils
-│       └── __init__.py                          # Initialization file for the utils module
-├── requirements.txt                             # List of dependencies
-└── README.md                                    # Project documentation
-```
+- **`driver.py`**: The main entry point of the project. It orchestrates the workflow by calling the visualization, matrix generation, and constraint relaxation functions.
+- **`create_alpha_relations_matrix.py`**: Contains the `matrix_function` to generate the alpha relations matrix from a PNML file.
+- **`relaxing_declarative_constraints.py`**: Contains the `relax_constraints_function` to relax declarative constraints based on the alpha relations matrix.
+- **`visualize_pnml_model.py`**: Contains the `visualize_function` to visualize the Petri net model from a PNML file.
 
-## Requirements
+## Prerequisites
 
-To run this project, you need to install the following dependencies:
-
-- pandas
-- openpyxl
-
-You can install the required packages using pip:
-
-```
-pip install -r requirements.txt
-```
+- Python 3.7 or higher
+- Required Python libraries (install via `requirements.txt` if available)
 
 ## Usage
 
-1. Place your PNML file in the `data` directory. The provided example is `model_d.pnml`.
-2. Open the Jupyter Notebook `notebooks/generate_alpha_relations_matrix.ipynb`.
-3. Run the cells in the notebook to generate the alpha relations matrix.
+1. Place your PNML file in the desired location.
+2. Run the `driver.py` script with the path to the PNML file as an argument:
 
-## License
-
-This project is licensed under the MIT License.
+   ```bash
+   python driver.py <pnml_file_path>
