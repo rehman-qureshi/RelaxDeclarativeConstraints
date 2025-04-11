@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<pnml>
+  <net id="" type="http://www.pnml.org/version-2009/grammar/pnmlcoremodel">
+    <name>
+      <text></text>
+    </name>
+    <page id="n0">
+      <place id="exi_sid-D14CB19F-300C-4F06-B39E-30324D84A379">
+        <name>
+          <text>exi_sid-D14CB19F-300C-4F06-B39E-30324D84A379</text>
+        </name>
+      </place>
+      <place id="exi_sid-7E731C8D-8C56-49CE-A448-80FA5890222F">
+        <name>
+          <text>exi_sid-7E731C8D-8C56-49CE-A448-80FA5890222F</text>
+        </name>
+      </place>
+      <place id="ent_sid-095B00EE-971B-406D-823D-B31016F14231">
+        <name>
+          <text>ent_sid-095B00EE-971B-406D-823D-B31016F14231</text>
+        </name>
+      </place>
+      <place id="source">
+        <name>
+          <text>source</text>
+        </name>
+        <initialMarking>
+          <text>1</text>
+        </initialMarking>
+      </place>
+      <place id="ent_sid-2C2AD667-1A6C-4168-A8C1-5513C037EB53">
+        <name>
+          <text>ent_sid-2C2AD667-1A6C-4168-A8C1-5513C037EB53</text>
+        </name>
+      </place>
+      <place id="ent_sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5">
+        <name>
+          <text>ent_sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5</text>
+        </name>
+      </place>
+      <place id="ent_sid-70CFC65C-49DC-4FB4-9B98-28A87A2840DB">
+        <name>
+          <text>ent_sid-70CFC65C-49DC-4FB4-9B98-28A87A2840DB</text>
+        </name>
+      </place>
+      <place id="sink">
+        <name>
+          <text>sink</text>
+        </name>
+      </place>
+      <place id="ent_sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE">
+        <name>
+          <text>ent_sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE</text>
+        </name>
+      </place>
+      <transition id="sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5">
+        <name>
+          <text>Ship Inside of Germany (SG)</text>
+        </name>
+      </transition>
+      <transition id="sid-CC058A8B-DABD-4F18-8C33-A24F7A235C3B">
+        <name>
+          <text>Send Bill (SB)</text>
+        </name>
+      </transition>
+      <transition id="sid-808FBED1-5FF7-4A78-A39F-7DC7307245B7">
+        <name>
+          <text>Prepare Special Bill (PB)</text>
+        </name>
+      </transition>
+      <transition id="sid-448B2F89-8E93-4F66-906C-411F0379CE2E">
+        <name>
+          <text>Receive Order(RO)</text>
+        </name>
+      </transition>
+      <transition id="sid-E7DD12C2-5260-4675-9930-E733BBE72051">
+        <name>
+          <text>Ship Outside of EU (SO)</text>
+        </name>
+      </transition>
+      <transition id="sid-C68817B3-A153-4CDF-9EE4-92A62456F4CD">
+        <name>
+          <text>Generate Standard Bill (GB)</text>
+        </name>
+      </transition>
+      <transition id="sid-095B00EE-971B-406D-823D-B31016F14231">
+        <name>
+          <text>Load Container (LC)</text>
+        </name>
+      </transition>
+      <transition id="sid-DA9D17AF-0348-4544-A1A9-79E1B6E51654">
+        <name>
+          <text>Ship Inside of EU (SE)</text>
+        </name>
+      </transition>
+      <transition id="sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE">
+        <name>
+          <text>Evaluate Size of Order (EO)</text>
+        </name>
+      </transition>
+      <arc id="2611322853888" source="ent_sid-095B00EE-971B-406D-823D-B31016F14231" target="sid-095B00EE-971B-406D-823D-B31016F14231"/>
+      <arc id="2611323016192" source="sid-DA9D17AF-0348-4544-A1A9-79E1B6E51654" target="ent_sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5"/>
+      <arc id="2611323019264" source="ent_sid-2C2AD667-1A6C-4168-A8C1-5513C037EB53" target="sid-CC058A8B-DABD-4F18-8C33-A24F7A235C3B"/>
+      <arc id="2611323017248" source="sid-448B2F89-8E93-4F66-906C-411F0379CE2E" target="ent_sid-095B00EE-971B-406D-823D-B31016F14231"/>
+      <arc id="2611323018304" source="sid-C68817B3-A153-4CDF-9EE4-92A62456F4CD" target="ent_sid-70CFC65C-49DC-4FB4-9B98-28A87A2840DB"/>
+      <arc id="2611323017824" source="sid-095B00EE-971B-406D-823D-B31016F14231" target="exi_sid-7E731C8D-8C56-49CE-A448-80FA5890222F"/>
+      <arc id="2611323019360" source="exi_sid-D14CB19F-300C-4F06-B39E-30324D84A379" target="sid-808FBED1-5FF7-4A78-A39F-7DC7307245B7"/>
+      <arc id="2611323018880" source="ent_sid-70CFC65C-49DC-4FB4-9B98-28A87A2840DB" target="sid-CC058A8B-DABD-4F18-8C33-A24F7A235C3B"/>
+      <arc id="2611323017344" source="sid-808FBED1-5FF7-4A78-A39F-7DC7307245B7" target="ent_sid-70CFC65C-49DC-4FB4-9B98-28A87A2840DB"/>
+      <arc id="2611322853552" source="ent_sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5" target="sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5"/>
+      <arc id="2611323019456" source="source" target="sid-448B2F89-8E93-4F66-906C-411F0379CE2E"/>
+      <arc id="2611323017920" source="sid-0F10C8F0-281F-4622-BC5B-3F0D0CD9BDC5" target="ent_sid-2C2AD667-1A6C-4168-A8C1-5513C037EB53"/>
+      <arc id="2611323016960" source="sid-E7DD12C2-5260-4675-9930-E733BBE72051" target="ent_sid-2C2AD667-1A6C-4168-A8C1-5513C037EB53"/>
+      <arc id="2611323018496" source="sid-CC058A8B-DABD-4F18-8C33-A24F7A235C3B" target="sink"/>
+      <arc id="2611322852112" source="ent_sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE" target="sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE"/>
+      <arc id="2611323019552" source="exi_sid-D14CB19F-300C-4F06-B39E-30324D84A379" target="sid-C68817B3-A153-4CDF-9EE4-92A62456F4CD"/>
+      <arc id="2611323019072" source="exi_sid-7E731C8D-8C56-49CE-A448-80FA5890222F" target="sid-E7DD12C2-5260-4675-9930-E733BBE72051"/>
+      <arc id="2611323018592" source="sid-448B2F89-8E93-4F66-906C-411F0379CE2E" target="ent_sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE"/>
+      <arc id="2611323019168" source="exi_sid-7E731C8D-8C56-49CE-A448-80FA5890222F" target="sid-DA9D17AF-0348-4544-A1A9-79E1B6E51654"/>
+      <arc id="2611323018688" source="sid-D04D29A8-DC9B-418C-B5A3-42964DAD72EE" target="exi_sid-D14CB19F-300C-4F06-B39E-30324D84A379"/>
+    </page>
+  </net>
+</pnml>
