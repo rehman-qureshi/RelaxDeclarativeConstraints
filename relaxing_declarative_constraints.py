@@ -140,4 +140,5 @@ def relax_constraints_function(df, last_transition,pnml_path):
     # Save the DataFrame to an Excel file
     constraints_df.to_excel(output_file, index=False, engine="openpyxl")
     print(f"Constraints saved to {output_file}")
+    return constraints_df
 

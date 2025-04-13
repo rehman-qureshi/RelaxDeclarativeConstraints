@@ -464,9 +464,9 @@ def find_last_transitions(net_pm4py, final_marking):
                 last_transitions.add(arc.source)
 
     # Print the names of the last transitions
-    print("Last transitions of the net:")
+    """print("Last transitions of the net:")
     for transition in last_transitions:
-        print(transition.label if transition.label else transition.name)
+        print(transition.label if transition.label else transition.name)"""
 
     return last_transitions
 
@@ -481,9 +481,9 @@ def find_first_transitions(net_pm4py, initial_marking):
                 first_transitions.add(arc.target)
 
     # Print the names of the first transitions
-    print("First transitions of the net:")
+    """print("First transitions of the net:")
     for transition in first_transitions:
-        print(transition.label if transition.label else transition.name)
+        print(transition.label if transition.label else transition.name)"""
 
     return first_transitions
 
@@ -492,43 +492,22 @@ def matrix_function(pnml_path):
     # Import the PNML file
     net_pm4py, initial_marking, final_marking = pnml_importer.apply(pnml_path)
     net = convert_pm4py_to_custom(net_pm4py, initial_marking)
-    
-    # Get the next transition from the initial marking
-    marked_places = net.get_marked_places()
-    for place in marked_places:
-        next_transitions = net.get_postset(place)  # Get transitions connected to the marked place
-        for transition in next_transitions:
-            print(f"Next transition: {transition.name}")
 
     first_transitions=find_first_transitions(net_pm4py, initial_marking)
-    print("Initial transitions:", [t.label if t.label else t.name for t in first_transitions])
+    #print("Initial transitions:", [t.label if t.label else t.name for t in first_transitions])
 
     last_transitions=find_last_transitions(net_pm4py, final_marking)
-    print("Final transitions:", [t.label if t.label else t.name for t in last_transitions])    
+    #print("Final transitions:", [t.label if t.label else t.name for t in last_transitions])    
      
     if not PetriNet.STRUCTURAL_CHECKS.is_workflow_net(net):
         print("The net system is not a valid workflow net.")
         return None, None, None
-    
-    transitions = [n for n in net.get_nodes() if isinstance(n, Transition)]
-    # Sort transitions based on their connection to the initial marking
-    marked_places = net.get_marked_places()  # Get places in the initial marking
-    transitions_connected_to_initial = []  # List to store transitions directly connected to the initial marking
-
-    # Get transitions connected to the initial marking
-    for place in marked_places:
-        next_transitions = net.get_postset(place)  # Get transitions connected to the marked place
-        for transition in next_transitions:
-            if transition not in transitions_connected_to_initial:  # Avoid duplicates
-                transitions_connected_to_initial.append(transition)
 
     rs_creator = RelSetCreatorUnfolding.get_instance()
     transitions = [n for n in net.get_nodes() if isinstance(n, Transition)]
     rel_set = rs_creator.derive_relation_set(net, transitions, 1)
     print("Create Alpha-Relations Matrix")
-    
-    #transitions = net.get_transitions()
-    transitions =transitions
+     
     # Define the output folder path relative to the driver.py location
     driver_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
     output_dir = os.path.join(driver_dir, "output")

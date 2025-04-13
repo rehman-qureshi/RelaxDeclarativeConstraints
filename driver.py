@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     pnml_path = sys.argv[1]
     # Call the visualization function
-    visualize_function(pnml_path)
+    output_file=visualize_function(pnml_path)
    
     # Call the matrix function
     df, last_transitions  = matrix_function(pnml_path)
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         # If the label is not available, use the name
         last_transition = next(iter(last_transitions)).label if next(iter(last_transitions)).label else next(iter(last_transitions)).name
         # Call the relax constraints function
-        relax_constraints_function(df,last_transition,pnml_path)
+        constraints_df=relax_constraints_function(df,last_transition,pnml_path)
         
     else:
         print("Failed to create the alpha relations matrix.")
