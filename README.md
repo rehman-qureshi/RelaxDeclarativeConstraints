@@ -8,7 +8,7 @@ This project provides a pipeline for processing PNML files, visualizing Petri ne
 - **`create_alpha_relations_matrix.py`**: Contains the `matrix_function` to generate the alpha relations matrix from a PNML file.
 - **`relaxing_declarative_constraints.py`**: Contains the `relax_constraints_function` to derive relaxed declarative constraints based on the alpha relations matrix.
 - **`visualize_pnml_model.py`**: Contains the `visualize_function` to visualize the Petri net model from a PNML file.
-
+- **`tutorial.ipynb`**: This notebook provides a brief tutorial on how to use RelaxDeclarativeConstraints tool step-by-step to generate constraints from a business process model.
 ## Prerequisites
 
 - Python 3.7 or higher
