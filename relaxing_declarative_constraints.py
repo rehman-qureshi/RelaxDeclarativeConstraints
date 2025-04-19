@@ -78,10 +78,14 @@ def process_constraints(df, columns_names, last_transition):
     # Remove duplicates from eventuallyFollowSet
     eventuallyFollowSet -= directlyFollowSet
     print("Length of Transitive Closed Constraints Set:", len(eventuallyFollowSet))
-
+    print("Current Set of Transitive Closed Constraints:")
+    # Print the eventuallyFollowSet
+    for value in eventuallyFollowSet:
+        print(value)
+    
     # Combine both sets
-    combinedSet = eventuallyFollowSet.union(directlyFollowSet)
-    print("Length of Combined Set:", len(combinedSet))
+    #combinedSet = eventuallyFollowSet.union(directlyFollowSet)
+    #print("Length of Combined Set:", len(combinedSet))
 
 
 def ask_user_to_remove_constraint(pnml_path):
