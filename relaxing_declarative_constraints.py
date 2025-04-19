@@ -1,144 +1,195 @@
 import pandas as pd
-from concurrent.futures import ThreadPoolExecutor
+import sys
+from collections import deque
 import os
+import csv
 
 
 # Global variables
-finalRelaxedConstraints = []
-finalRemovedConstraints = []
+directlyFollowSet = set()
+eventuallyFollowSet = set()
 
-def find_constraints(df, columns_names, search_value, last_transition, visited):
+def find_eventually_follow(df, columns_names, previous_value, search_value, last_transition):
     """
-    Function to find constraints based on search_value and last_transition.
+    Iteratively find all eventually follow constraints using a stack with cycle detection.
     """
-    stack = [(search_value, [])]  # Stack to simulate recursion (search_value and removedHelper)
-    localRelaxedConstraints = []
-    localRemovedConstraints = []
+    global eventuallyFollowSet
+
+    # Use a stack to replace recursion
+    stack = [(previous_value, search_value)]
+    visited = set()  # Track visited nodes to avoid cycles
 
     while stack:
-        current_value, current_helper = stack.pop()
+        prev, current = stack.pop()
 
         # Skip if already visited to avoid cycles
-        if current_value in visited:
+        if current in visited:
             continue
-        visited.add(current_value)
+        visited.add(current)
 
-        # Base case: Stop if current_value matches last_transition
-        if current_value == last_transition:
-            if current_value not in localRelaxedConstraints:
-                localRelaxedConstraints.append(current_value)
+        # Base case: Stop if current matches last_transition
+        #if current == last_transition:
+        if current in last_transition:
             continue
 
-        # Filter rows where the first column matches the current_value
-        filtered_row = df[df.iloc[:, 0] == current_value]
-        if filtered_row.empty:
+        # Filter rows where the first column matches the current value
+        filtered_rows = df.loc[df.iloc[:, 0] == current]
+        if filtered_rows.empty:
             continue
 
         # Iterate through the filtered rows
-        for _, row in filtered_row.iterrows():
+        for _, row in filtered_rows.iterrows():
             for col_index, col_value in enumerate(row):
                 if isinstance(col_value, str) and '→' in col_value:
-                    if columns_names[col_index] == last_transition:
-                        if columns_names[col_index] not in localRelaxedConstraints:
-                            localRelaxedConstraints.append(columns_names[col_index])
-                        removedHelperAll = "".join(current_helper)
-                        localRemovedConstraints.append(removedHelperAll + current_value + ' → ' + columns_names[col_index])
-                        continue
+                    #if columns_names[col_index] == last_transition:
+                    if columns_names[col_index] in last_transition:
+                        eventuallyFollowSet.add((prev, columns_names[col_index]))
                     else:
-                        # Add the next value to the stack
-                        stack.append((columns_names[col_index], current_helper + [current_value + ' → ']))
+                        eventuallyFollowSet.add((prev, columns_names[col_index]))
+                        stack.append((prev, columns_names[col_index]))
+                        #print(f"Added to stack: prev={prev}, next={columns_names[col_index]}")
 
-    return localRelaxedConstraints, localRemovedConstraints
-
-def process_constraints_for_key(df, columns_names, key, value, last_transition):
+def initialize_directly_follow_set(df, columns_names):
     """
-    Process constraints for a single key-value pair in the result dictionary.
+    Initialize the directlyFollowSet by iterating through the DataFrame.
     """
-    localRelaxedConstraints = []
-    localRemovedConstraints = []
+    global directlyFollowSet
 
-    visited = set()  # Track visited nodes to avoid cycles
+    # Use vectorized operations to populate directlyFollowSet
+    for row_index in range(len(df)):
+        for col_index in range(1, len(df.columns)):
+            cell_value = df.iloc[row_index, col_index]
+            if isinstance(cell_value, str) and ('→' in cell_value or '||' in cell_value):
+                directlyFollowSet.add((df.iloc[row_index, 0], columns_names[col_index]))
 
-    for eachValue in value:
-        relaxed, removed = find_constraints(df, columns_names, eachValue, last_transition, visited)
+    print("Initial Constraints Set is determining ... : ", len(directlyFollowSet))
 
-        # Add relaxed constraints
-        for eachRelaxed in relaxed:
-            localRelaxedConstraints.append(key + ' → ' + eachRelaxed)
 
-        # Add removed constraints
-        if removed:
-            localRemovedConstraints.append(key + ' → ' + eachValue)
-            for eachRemoved in removed:
-                if eachRemoved != eachValue:
-                    localRemovedConstraints.append(key + ' → ' + eachRemoved)
+def process_constraints(df, columns_names, last_transition):
+    global eventuallyFollowSet, directlyFollowSet
 
-    return localRelaxedConstraints, localRemovedConstraints
+    # Find all eventually follow constraints
+    for idx, value in enumerate(directlyFollowSet):
+        #print(f"Processing directlyFollowSet item {idx + 1}/{len(directlyFollowSet)}: {value}")
+        find_eventually_follow(df, columns_names, value[0], value[1], last_transition)
 
-def process_constraints(df, result, columns_names, last_transition):
+    print("Length of Initial Constraints Set:", len(directlyFollowSet))
+
+    # Remove duplicates from eventuallyFollowSet
+    eventuallyFollowSet -= directlyFollowSet
+    print("Length of Transitive Closed Constraints Set:", len(eventuallyFollowSet))
+
+    # Combine both sets
+    combinedSet = eventuallyFollowSet.union(directlyFollowSet)
+    print("Length of Combined Set:", len(combinedSet))
+
+
+def ask_user_to_remove_constraint(pnml_path):
     """
-    Process constraints for each key-value pair in the result dictionary using threading.
+    Allow the user to remove a constraint from directlyFollowSet and update eventuallyFollowSet.
     """
-    global finalRelaxedConstraints, finalRemovedConstraints
+    global directlyFollowSet, eventuallyFollowSet
 
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for key, value in result.items():
-            #print(f"Processing key: {key} with values: {value}")
-            futures.append(executor.submit(process_constraints_for_key, df, columns_names, key, value, last_transition))
+    while True:
 
-        for future in futures:
-            localRelaxedConstraints, localRemovedConstraints = future.result()
-            finalRelaxedConstraints.extend(localRelaxedConstraints)
-            finalRemovedConstraints.extend(localRemovedConstraints)
+        if len(directlyFollowSet) == 0:  # if no constraints left to remove
+            print("No more constraints to remove. Exiting...")
+            break
 
-    # Remove duplicates from final results
-    finalRelaxedConstraints[:] = list(set(finalRelaxedConstraints))
-    finalRemovedConstraints[:] = list(set(finalRemovedConstraints))
+    # Show all tuples in directlyFollowSet
+        print("Current Set of Initial Constraints:")
+        directlyFollowList = list(directlyFollowSet)  # Convert to list once for indexing
+        for idx, value in enumerate(directlyFollowList):
+            print(f"{idx + 1}: {value}")
 
-def relax_constraints_function(df, last_transition,pnml_path):
+        removed_constraints = []
+        # Ask the user which tuple to remove
+        try:
+            user_input = int(input("Enter the number of the constraint you want to remove (e.g., 1, 2, etc.): "))
+            if 1 <= user_input <= len(directlyFollowList):
+                tuple_to_remove = directlyFollowList[user_input - 1]
+                directlyFollowSet.remove(tuple_to_remove)
+                print(f"Removed Constraint: {tuple_to_remove}")
+                removed_constraints.extend(tuple_to_remove)
+            else:
+                print("Invalid input. No tuple removed.")
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+
+        # Update eventuallyFollowSet by removing related constraints
+        to_remove = [value for value in eventuallyFollowSet if value[0] in removed_constraints or value[1] in removed_constraints]
+        for value in to_remove:
+            eventuallyFollowSet.remove(value)
+
+        # Show the updated sets
+        print("Updated Initial Constraints Set:", len(directlyFollowSet))
+        print("Updated Transitive Closed Constraints Set:", len(eventuallyFollowSet))
+        for value in eventuallyFollowSet:
+            print(value)
+        
+        user_input = input("Do you want to remove more constraint from the Initial Constraints Set? (yes/no): ").strip().lower()
+        if user_input in ['yes']:
+            continue
+        elif user_input in ['no']:
+            break
+        else:
+            print("Invalid input. Start again to remove constraints.")
+            break
+
+    # Save the updated sets to CSV files
+    # Define the output folder path relative to the driver.py location
+    driver_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+    output_dir = os.path.join(driver_dir, "output")
+    os.makedirs(output_dir, exist_ok=True)  # Create the folder if it doesn't exist
+        # Define the output file path
+    output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_declarative_constraints.csv")
+
+
+    # Write to a single-column CSV
+    with open(output_file, mode="w", newline="", encoding="utf-8-sig") as file:
+        writer = csv.writer(file)
+
+        # First column section: "A"
+        writer.writerow(["**Initial Constraints Set**"])
+        for tup in directlyFollowSet:
+            writer.writerow([str(tup)])  # Write full tuple as a string
+
+
+        # Second column section: "B"
+        writer.writerow(["**Transitive Closed Constraints Set**"])
+        for tup in eventuallyFollowSet:
+            writer.writerow([str(tup)])
+    
+    # Get the relative path of the output file
+    relative_output_file = os.path.relpath(output_file, start=os.getcwd())
+    print(f"Updated constraints saved to {relative_output_file}")
+    ## Clear the sets for the next run
+    directlyFollowSet.clear()
+    eventuallyFollowSet.clear()
+
+def find_all_possible_constraints(df, last_transitions):
     """
-    Main function to read the data, process constraints, and print results.
+    Main function to find all possible constraints.
     """
-    global finalRelaxedConstraints, finalRemovedConstraints
-
-
-    # Initialize a dictionary to store row indices and corresponding column names
-    result = {}
+    global directlyFollowSet, eventuallyFollowSet
 
     # Get column names
     columns_names = df.columns.tolist()
 
-    # Build the result dictionary
-    for row_index in range(len(df)):
-        list_of_columns = []
-        for col_index in range(1, len(df.columns)):
-            cell_value = df.iloc[row_index, col_index]
-            if isinstance(cell_value, str) and ('→' in cell_value or '||' in cell_value):
-                list_of_columns.append(columns_names[col_index])
-        result[df.iloc[row_index, 0]] = list_of_columns
-
+    # Initialize directlyFollowSet
+    initialize_directly_follow_set(df, columns_names)
+    
     # Process constraints
-    process_constraints(df, result, columns_names, last_transition)
+    # You can change this to any other transition as needed
+    process_constraints(df, columns_names, last_transitions)
 
-    # Save results to an Excel file
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
-    os.makedirs(output_dir, exist_ok=True)  # Create the folder if it doesn't exist
-    output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_relaxed_removed_constraints.xlsx")
 
-    # Ensure both lists have the same length
-    max_length = max(len(finalRelaxedConstraints), len(finalRemovedConstraints))
-    finalRelaxedConstraints.extend([""] * (max_length - len(finalRelaxedConstraints)))
-    finalRemovedConstraints.extend([""] * (max_length - len(finalRemovedConstraints)))
+def relax_constraints_function(df, last_transitions, pnml_path):
+    """
+    Main function to derive relaxed declarative constraints.
+    """
 
-    # Create a DataFrame with two columns
-    constraints_df = pd.DataFrame({
-        "Relaxed Constraints": finalRelaxedConstraints,
-        "Removed Constraints": finalRemovedConstraints
-    })
-
-    # Save the DataFrame to an Excel file
-    constraints_df.to_excel(output_file, index=False, engine="openpyxl")
-    print(f"Constraints saved to {output_file}")
-    return constraints_df
-
+    find_all_possible_constraints(df, last_transitions)
+    ask_user_to_remove_constraint(pnml_path)
+    
+    return True

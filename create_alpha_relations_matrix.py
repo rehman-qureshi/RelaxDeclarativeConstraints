@@ -9,7 +9,7 @@ from pm4py.objects.petri_net.importer import importer as pnml_importer
 import pm4py.objects.petri_net.obj as pm_petri
 from pm4py.objects.petri_net.obj import PetriNet as PM4PyPetriNet
 import pandas as pd
-from openpyxl import Workbook
+import csv
 
 
 class RelSetType(Enum):
@@ -467,8 +467,14 @@ def find_last_transitions(net_pm4py, final_marking):
     """print("Last transitions of the net:")
     for transition in last_transitions:
         print(transition.label if transition.label else transition.name)"""
+    filtered_transitions=[]
+    for t in last_transitions:
+        if t.label is not None and t.label != "":
+            filtered_transitions.append(t.label)
+        else:
+            filtered_transitions.append(t.name)
 
-    return last_transitions
+    return filtered_transitions
 
 def find_first_transitions(net_pm4py, initial_marking):
     first_transitions = set()  # Use a set to avoid duplicates
@@ -514,32 +520,33 @@ def matrix_function(pnml_path):
     os.makedirs(output_dir, exist_ok=True)  # Create the folder if it doesn't exist
 
     # Define the output file path
-    xlsx_output_path = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_alpha_relations_matrix.xlsx")
+    csv_output_path = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_alpha_relations_matrix.csv")
 
     # Get the matrix
     matrix = rel_set.get_matrix()
 
     # Extract transition names (for rows and columns)
     transition_names = [t.name for t in transitions]
-    # Create a new workbook and sheet
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Alpha Relations Matrix"
 
-    # Write the header row
-    ws.append([""] + transition_names)
+    # Save the matrix to a CSV file
+    with open(csv_output_path, mode='w', newline='', encoding='utf-8-sig') as csv_file:
+        writer = csv.writer(csv_file)
+        
+        # Write the header row
+        writer.writerow([""] + transition_names)
+        
+        # Write each row of the matrix with row headers
+        for row_index, row in enumerate(matrix):
+            row_data = [transition_names[row_index]] + [str(entry) for entry in row]
+            writer.writerow(row_data)
 
-    # Write each row of the matrix with row headers
-    for row_index, row in enumerate(matrix):
-        row_data = [transition_names[row_index]] + [str(entry) for entry in row]
-        ws.append(row_data)
-
-    # Save the .xlsx file
-    wb.save(xlsx_output_path)
-    print(f"Matrix saved to {xlsx_output_path}")
+    # Get the relative path of the output file
+    relative_output_file = os.path.relpath(csv_output_path, start=os.getcwd())
+    print(f"Matrix saved to {relative_output_file}")
     
-    # Load the Excel file as a DataFrame
-    df = pd.read_excel(xlsx_output_path, engine="openpyxl")
+    
+    # Load the csv file as a DataFrame
+    df = pd.read_csv(csv_output_path)
 
     # Return the DataFrame, last transitions
     return df, last_transitions

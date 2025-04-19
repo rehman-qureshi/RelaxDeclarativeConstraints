@@ -17,11 +17,12 @@ if __name__ == "__main__":
     df, last_transitions  = matrix_function(pnml_path)
     if df is not None:
         print("Return Alpha Relations Matrix in driver.py file.")
-        # Fetch the last transition label or name
-        # If the label is not available, use the name
-        last_transition = next(iter(last_transitions)).label if next(iter(last_transitions)).label else next(iter(last_transitions)).name
+        # Fetch the last transitions
+        print("Last transitions: ", last_transitions)                   
         # Call the relax constraints function
-        constraints_df=relax_constraints_function(df,last_transition,pnml_path)
+        constraints_df=relax_constraints_function(df,last_transitions,pnml_path)
+        if constraints_df is not True:
+            print("Failed to derived relaxed declarative constraints.")
         
     else:
         print("Failed to create the alpha relations matrix.")
