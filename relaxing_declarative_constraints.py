@@ -107,7 +107,7 @@ def ask_user_to_remove_constraint(pnml_path):
             print(f"{idx + 1}: {value}")
 
         removed_constraints = []
-        # Ask the user which tuple to remove
+        # Ask the user which constraint to be removed
         try:
             user_input = int(input("Enter the number of the constraint you want to remove (e.g., 1, 2, etc.): "))
             if 1 <= user_input <= len(directlyFollowList):
@@ -149,17 +149,17 @@ def ask_user_to_remove_constraint(pnml_path):
     output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_declarative_constraints.csv")
 
 
-    # Write to a single-column CSV
+    # Write to a single-column CSV file
     with open(output_file, mode="w", newline="", encoding="utf-8-sig") as file:
         writer = csv.writer(file)
 
-        # First column section: "A"
+        # First column section: "Initial Constraints Set"
         writer.writerow(["**Initial Constraints Set**"])
         for tup in directlyFollowSet:
             writer.writerow([str(tup)])  # Write full tuple as a string
 
 
-        # Second column section: "B"
+        # Second column section: "Transitive Closed Constraints Set"
         writer.writerow(["**Transitive Closed Constraints Set**"])
         for tup in eventuallyFollowSet:
             writer.writerow([str(tup)])
@@ -167,7 +167,7 @@ def ask_user_to_remove_constraint(pnml_path):
     # Get the relative path of the output file
     relative_output_file = os.path.relpath(output_file, start=os.getcwd())
     print(f"Updated constraints saved to {relative_output_file}")
-    ## Clear the sets for the next run
+    # Clear the sets for the next run
     directlyFollowSet.clear()
     eventuallyFollowSet.clear()
 
