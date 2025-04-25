@@ -8,12 +8,14 @@ import csv
 # Global variables
 directlyFollowSet = set()
 eventuallyFollowSet = set()
+removedDirectlyFollowSet = set()
+removedEventuallyFollowSet = set()
 
 def find_eventually_follow(df, columns_names, previous_value, search_value, last_transition):
     """
     Iteratively find all eventually follow constraints using a stack with cycle detection.
     """
-    global eventuallyFollowSet
+    global eventuallyFollowSet,removedEventuallyFollowSet
 
     # Use a stack to replace recursion
     stack = [(previous_value, search_value)]
@@ -62,7 +64,7 @@ def initialize_directly_follow_set(df, columns_names):
             if isinstance(cell_value, str) and ('→' in cell_value or '||' in cell_value):
                 directlyFollowSet.add((df.iloc[row_index, 0], columns_names[col_index]))
 
-    print("Initial Constraints Set is determining ... : ", len(directlyFollowSet))
+    print("Initial Constraints Set is determining ... ")
 
 
 def process_constraints(df, columns_names, last_transition):
@@ -88,7 +90,7 @@ def process_constraints(df, columns_names, last_transition):
     #print("Length of Combined Set:", len(combinedSet))
 
 
-def ask_user_to_remove_constraint(pnml_path):
+def ask_user_to_remove_constraint():
     """
     Allow the user to remove a constraint from directlyFollowSet and update eventuallyFollowSet.
     """
@@ -115,6 +117,7 @@ def ask_user_to_remove_constraint(pnml_path):
                 directlyFollowSet.remove(tuple_to_remove)
                 print(f"Removed Constraint: {tuple_to_remove}")
                 removed_constraints.extend(tuple_to_remove)
+                removedDirectlyFollowSet.add(tuple_to_remove)
             else:
                 print("Invalid input. No tuple removed.")
         except ValueError:
@@ -124,13 +127,18 @@ def ask_user_to_remove_constraint(pnml_path):
         to_remove = [value for value in eventuallyFollowSet if value[0] in removed_constraints or value[1] in removed_constraints]
         for value in to_remove:
             eventuallyFollowSet.remove(value)
+            removedEventuallyFollowSet.add(value)
 
         # Show the updated sets
-        print("Updated Initial Constraints Set:", len(directlyFollowSet))
-        print("Updated Transitive Closed Constraints Set:", len(eventuallyFollowSet))
+        print("Modified Initial Constraints Set:", len(directlyFollowSet))
+        print("Modified Transitive Closed Constraints Set:", len(eventuallyFollowSet))
         for value in eventuallyFollowSet:
             print(value)
         
+        print("Affected Transitive Closed Constraints Set:", len(removedEventuallyFollowSet))
+        for value in removedEventuallyFollowSet:
+            print(value)
+
         user_input = input("Do you want to remove more constraint from the Initial Constraints Set? (yes/no): ").strip().lower()
         if user_input in ['yes']:
             continue
@@ -146,23 +154,32 @@ def ask_user_to_remove_constraint(pnml_path):
     output_dir = os.path.join(driver_dir, "output")
     os.makedirs(output_dir, exist_ok=True)  # Create the folder if it doesn't exist
         # Define the output file path
-    output_file = os.path.join(output_dir, os.path.splitext(os.path.basename(pnml_path))[0]+"_declarative_constraints.csv")
+    output_file= os.path.join(output_dir, "declarative_constraints.csv")
 
 
     # Write to a single-column CSV file
     with open(output_file, mode="w", newline="", encoding="utf-8-sig") as file:
         writer = csv.writer(file)
 
-        # First column section: "Initial Constraints Set"
-        writer.writerow(["**Initial Constraints Set**"])
-        for tup in directlyFollowSet:
-            writer.writerow([str(tup)])  # Write full tuple as a string
-
-
-        # Second column section: "Transitive Closed Constraints Set"
-        writer.writerow(["**Transitive Closed Constraints Set**"])
+        # "Modified Transitive Closed Constraints Set"
+        writer.writerow(["**Modified Transitive Closed Constraints Set**"])
         for tup in eventuallyFollowSet:
             writer.writerow([str(tup)])
+        
+        # "Affected Transitive Closed Constraints Set"
+        writer.writerow(["**Affected Transitive Closed Constraints Set**"])
+        for tup in removedEventuallyFollowSet:
+            writer.writerow([str(tup)])
+
+         # Removed Initial Constraints Set
+        writer.writerow(["**Removed Initial Constraints Set**"])
+        for tup in removedDirectlyFollowSet:
+            writer.writerow([str(tup)]) 
+
+        # Modified Initial Constraints Set
+        writer.writerow(["**Modified Initial Constraints Set**"])
+        for tup in directlyFollowSet:
+            writer.writerow([str(tup)]) 
     
     # Get the relative path of the output file
     relative_output_file = os.path.relpath(output_file, start=os.getcwd())
@@ -170,12 +187,14 @@ def ask_user_to_remove_constraint(pnml_path):
     # Clear the sets for the next run
     directlyFollowSet.clear()
     eventuallyFollowSet.clear()
+    removedDirectlyFollowSet.clear()
+    removedEventuallyFollowSet.clear()
 
 def find_all_possible_constraints(df, last_transitions):
     """
     Main function to find all possible constraints.
     """
-    global directlyFollowSet, eventuallyFollowSet
+    global directlyFollowSet, eventuallyFollowSet, removedDirectlyFollowSet, removedEventuallyFollowSet
 
     # Get column names
     columns_names = df.columns.tolist()
@@ -188,12 +207,12 @@ def find_all_possible_constraints(df, last_transitions):
     process_constraints(df, columns_names, last_transitions)
 
 
-def relax_constraints_function(df, last_transitions, pnml_path):
+def relax_constraints_function(df, last_transitions):
     """
     Main function to derive relaxed declarative constraints.
     """
 
     find_all_possible_constraints(df, last_transitions)
-    ask_user_to_remove_constraint(pnml_path)
+    ask_user_to_remove_constraint()
     
     return True

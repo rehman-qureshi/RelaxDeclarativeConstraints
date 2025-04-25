@@ -1,10 +1,11 @@
-﻿,Receive Order(RO),Prepare Special Bill (PB),Generate Standard Bill (GB),Load Container (LC),Evaluate Size of Order (EO),Ship Inside of Germany (SG),Ship Outside of EU (SO),Send Bill (SB),Ship Inside of EU (SE)
-Receive Order(RO),-,-,-,→,→,-,-,-,-
-Prepare Special Bill (PB),-,-,-,||,←,||,||,→,||
-Generate Standard Bill (GB),-,-,-,||,←,||,||,→,||
-Load Container (LC),←,||,||,-,||,-,→,-,→
-Evaluate Size of Order (EO),←,→,→,||,-,||,||,-,||
-Ship Inside of Germany (SG),-,||,||,-,||,-,-,→,←
-Ship Outside of EU (SO),-,||,||,←,||,-,-,→,-
-Send Bill (SB),-,←,←,-,-,←,←,-,-
-Ship Inside of EU (SE),-,||,||,←,||,→,-,-,-
+﻿,Load Container (LC),Ship inside of EU (SE),Ship inside of Germany (IG),Generate Special Bill (GS),Ship outside of Germany (OG),Received Order (RO),Ship outside of EU (SO),Evaluate Size of Order (EO),Generate Standard Bill (GB),Send Bill (SB)
+Load Container (LC),-,→,-,||,-,←,→,||,||,-
+Ship inside of EU (SE),←,-,→,||,→,-,-,||,||,-
+Ship inside of Germany (IG),-,←,-,||,-,-,-,||,||,→
+Generate Special Bill (GS),||,||,||,-,||,-,||,←,-,→
+Ship outside of Germany (OG),-,←,-,||,-,-,-,||,||,→
+Received Order (RO),→,-,-,-,-,-,-,→,-,-
+Ship outside of EU (SO),←,-,-,||,-,-,-,||,||,→
+Evaluate Size of Order (EO),||,||,||,→,||,←,||,-,→,-
+Generate Standard Bill (GB),||,||,||,-,||,-,||,←,-,→
+Send Bill (SB),-,-,←,←,←,-,←,-,←,-
