@@ -113,7 +113,7 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
 
 
 # --- Main GUI Setup ---
-def main_gui(df,last_activities,image_path):
+def main_gui_function(df,last_activities,image_path):
 
     directlyFollowSet,eventuallyFollowSet=find_constraints_function(df,last_activities)
 

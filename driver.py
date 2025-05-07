@@ -1,7 +1,7 @@
 import sys
 from create_alpha_relations_matrix import matrix_function
 from visualize_pnml_model import visualize_function
-from relaxing_declarative_constraints_gui import main_gui
+from relaxing_declarative_constraints_gui import main_gui_function
 
 if __name__ == "__main__":
      
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     df, last_activities  = matrix_function(pnml_path)
     if df is not None:
         print("Return Alpha Relations Matrix in driver.py file.")
-        main_gui(df,last_activities,output_file)
+        main_gui_function(df,last_activities,output_file)
     else:
         print("Failed to create the alpha relations matrix.")
  
