@@ -1,7 +1,7 @@
 import sys
 from create_alpha_relations_matrix import matrix_function
-from relaxing_declarative_constraints import relax_constraints_function
 from visualize_pnml_model import visualize_function
+from relaxing_declarative_constraints_gui import main_gui
 
 if __name__ == "__main__":
      
@@ -14,16 +14,10 @@ if __name__ == "__main__":
     output_file=visualize_function(pnml_path)
    
     # Call the matrix function
-    df, last_transitions  = matrix_function(pnml_path)
+    df, last_activities  = matrix_function(pnml_path)
     if df is not None:
         print("Return Alpha Relations Matrix in driver.py file.")
-        # Fetch the last transitions
-        print("Last transitions: ", last_transitions)                   
-        # Call the relax constraints function
-        constraints_df=relax_constraints_function(df,last_transitions,pnml_path)
-        if constraints_df is not True:
-            print("Failed to derived relaxed declarative constraints.")
-        
+        main_gui(df,last_activities,output_file)
     else:
         print("Failed to create the alpha relations matrix.")
  
