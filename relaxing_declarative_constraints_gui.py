@@ -1,19 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-from pm4py.objects.petri_net.importer import importer as pnml_importer
-from pm4py.visualization.petri_net import visualizer as pn_visualizer
 from find_constraints import find_constraints_function
 from find_transitivity import find_transitivity_by_removal
+from generate_declare_and_regex import generate_declare_and_regex_function 
 
 # --- Utility Functions ---
 check_vars = []
 findTransitivityByRemovalSet = set()
 directlyFollowSet,eventuallyFollowSet = set(),set()
 
-def create_scrollable_frame(parent):
+"""def create_scrollable_frame(parent):
     outer = ttk.Frame(parent)
-    canvas = tk.Canvas(outer,borderwidth=0, highlightthickness=0)
+    canvas = tk.Canvas(outer, borderwidth=0, highlightthickness=0)
     scrollbar = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -27,13 +26,37 @@ def create_scrollable_frame(parent):
 
     inner.bind("<Configure>", configure_scrollregion)
 
-    #canvas.create_window((0, 0), window=inner, anchor="nw")
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+    return outer, inner"""
 
-    #inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+def create_scrollable_frame(parent):
+    outer = ttk.Frame(parent)
+
+    canvas = tk.Canvas(outer, borderwidth=0, highlightthickness=0, bg="#f0f0f0")
+    scrollbar = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # Use tk.Frame with matching background
+    inner = tk.Frame(canvas, bg="#f0f0f0")
+    window_id = canvas.create_window((0, 0), window=inner, anchor="nw")
+
+    def on_frame_configure(event):
+        # Dynamically update scrollregion to match inner frame size
+        canvas.configure(scrollregion=canvas.bbox("all"))
+
+    def on_canvas_configure(event):
+        # Ensure inner frame width matches canvas width
+        canvas.itemconfig(window_id, width=canvas.winfo_width())
+
+    inner.bind("<Configure>", on_frame_configure)
+    canvas.bind("<Configure>", on_canvas_configure)
 
     canvas.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
+
     return outer, inner
+
 
 def populate_constraints_frame(frame, dataset, label):
     for widget in frame.winfo_children():
@@ -45,8 +68,7 @@ def populate_constraints_frame(frame, dataset, label):
 
     for src, tgt in dataset:
         ttk.Label(inner, text=f"{src} → {tgt}").pack(anchor="w", padx=10)
-
-
+    
 def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventuallyFollowSet):
     removedDirectlyFollowSet = set()
     affectedEventuallyFollowSet = set()
@@ -72,7 +94,8 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
             check_vars.append(var)
         
         inner_left.update_idletasks()  # force redraw to stabilize layout
-
+        inner_left.update()
+    
     def populate_right_frames():
         populate_constraints_frame(frames["right1"], eventuallyFollowSet, "Transitive Closed Constraints")
         populate_constraints_frame(frames["right2"], affectedEventuallyFollowSet, "Affected Transitive Closed Constraints")
@@ -107,7 +130,11 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
         populate_left_frame()
         populate_right_frames()
 
-    ttk.Button(btn_frame, text="Reset", state="disabled").pack(side="left", expand=True, padx=0)
+    def confirm_declare_and_regex():
+        generate_declare_and_regex_function(directlyFollowSet)
+
+    #ttk.Button(btn_frame, text="Generate Declare and Regex", state="disabled").pack(side="left", expand=True, padx=0)
+    ttk.Button(btn_frame, text="Generate Declare and Regex", command=confirm_declare_and_regex).pack(side="left", expand=True, padx=0)
     ttk.Button(btn_frame, text="Cancel", command=lambda: [var.set(False) for var in check_vars]).pack(side="left", expand=True, padx=0)
     ttk.Button(btn_frame, text="Remove", command=confirm_action).pack(side="left", expand=True, padx=0)
 

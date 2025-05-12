@@ -2,6 +2,7 @@ import os
 import csv
 from find_transitivity import find_transitivity_by_removal
 from find_constraints import find_constraints_function
+from generate_declare_and_regex import generate_declare_and_regex_function 
 
 
 # Global variables
@@ -67,42 +68,9 @@ def ask_user_to_remove_constraint(df, last_activities,directlyFollowSet,eventual
             print("Invalid input. Start again to remove constraints.")
             break
 
-    # Save the updated sets to CSV files
-    # Define the output folder path relative to the driver.py location
-    driver_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
-    output_dir = os.path.join(driver_dir, "output")
-    os.makedirs(output_dir, exist_ok=True)  # Create the folder if it doesn't exist
-        # Define the output file path
-    output_file= os.path.join(output_dir, "declarative_constraints.csv")
-
-
-    # Write to a single-column CSV file
-    with open(output_file, mode="w", newline="", encoding="utf-8-sig") as file:
-        writer = csv.writer(file)
-
-        # "Modified Transitive Closed Constraints Set"
-        writer.writerow(["**Modified Transitive Closed Constraints Set**"])
-        for tup in eventuallyFollowSet:
-            writer.writerow([str(tup)])
-        
-        # "Affected Transitive Closed Constraints Set"
-        writer.writerow(["**Affected Transitive Closed Constraints Set**"])
-        for tup in affectedEventuallyFollowSet:
-            writer.writerow([str(tup)])
-
-         # Removed Initial Constraints Set
-        writer.writerow(["**Removed Initial Constraints Set**"])
-        for tup in removedDirectlyFollowSet:
-            writer.writerow([str(tup)]) 
-
-        # Modified Initial Constraints Set
-        writer.writerow(["**Modified Initial Constraints Set**"])
-        for tup in directlyFollowSet:
-            writer.writerow([str(tup)]) 
+    # generate the declarative constraints and regular expressions based on the resulting directly follows relations
+    generate_declare_and_regex_function(directlyFollowSet)
     
-    # Get the relative path of the output file
-    relative_output_file = os.path.relpath(output_file, start=os.getcwd())
-    print(f"Updated constraints saved to {relative_output_file}")
     # Clear the sets for the next run
     directlyFollowSet.clear()
     eventuallyFollowSet.clear()
