@@ -10,26 +10,6 @@ check_vars = []
 findTransitivityByRemovalSet = set()
 directlyFollowSet,eventuallyFollowSet = set(),set()
 
-"""def create_scrollable_frame(parent):
-    outer = ttk.Frame(parent)
-    canvas = tk.Canvas(outer, borderwidth=0, highlightthickness=0)
-    scrollbar = ttk.Scrollbar(outer, orient="vertical", command=canvas.yview)
-    canvas.configure(yscrollcommand=scrollbar.set)
-
-    inner = ttk.Frame(canvas)
-
-    window_id = canvas.create_window((0, 0), window=inner, anchor="nw")
-
-    def configure_scrollregion(event):
-        canvas.configure(scrollregion=canvas.bbox("all"))
-        canvas.itemconfig(window_id, width=canvas.winfo_width())  # match width to avoid misalignment
-
-    inner.bind("<Configure>", configure_scrollregion)
-
-    canvas.pack(side="left", fill="both", expand=True)
-    scrollbar.pack(side="right", fill="y")
-    return outer, inner"""
-
 def create_scrollable_frame(parent):
     outer = ttk.Frame(parent)
 
@@ -84,17 +64,37 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
     ttk.Label(inner_left, text="Directly Follows Constraints", font=('Segoe UI', 10, 'bold')).pack(anchor="w", padx=10, pady=(10, 5))
     outer_left.pack(fill="both", expand=True)
 
+    VISIBLE_COUNT = 100
+    current_index = [0]  # Use list to allow mutation in nested functions
     def populate_left_frame():
         for widget in inner_left.winfo_children():
             widget.destroy()
         ttk.Label(inner_left, text="Directly Follows Constraints", font=('Segoe UI', 10, 'bold')).pack(anchor="w", padx=10, pady=(10, 5))
-        for src, tgt in tuple_list:
+        
+        visible_items = tuple_list[current_index[0]:current_index[0] + VISIBLE_COUNT]
+        check_vars.clear()
+
+        for src, tgt in visible_items:
             var = tk.BooleanVar()
             ttk.Checkbutton(inner_left, text=f"{src} → {tgt}", variable=var).pack(anchor="w", padx=10)
             check_vars.append(var)
-        
-        inner_left.update_idletasks()  # force redraw to stabilize layout
-        inner_left.update()
+
+        # Paging buttons
+        nav_frame = ttk.Frame(inner_left)
+        nav_frame.pack(fill="x", pady=(10, 5))
+
+        def prev_page():
+            if current_index[0] - VISIBLE_COUNT >= 0:
+                current_index[0] -= VISIBLE_COUNT
+                populate_left_frame()
+
+        def next_page():
+            if current_index[0] + VISIBLE_COUNT < len(tuple_list):
+                current_index[0] += VISIBLE_COUNT
+                populate_left_frame()
+
+        ttk.Button(nav_frame, text="Next", command=next_page).pack(side="right", padx=5)
+        ttk.Button(nav_frame, text="Previous", command=prev_page).pack(side="right", padx=5)
     
     def populate_right_frames():
         populate_constraints_frame(frames["right1"], eventuallyFollowSet, "Transitive Closed Constraints")
@@ -107,20 +107,25 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
     btn_frame.pack(fill="x", pady=(1, 1))
 
     def confirm_action():
-        nonlocal tuple_list
+        
         selected_indices = [i for i, var in enumerate(check_vars) if var.get()]
-        removed_tuple_list = [tuple_list[i] for i in selected_indices]
-        tuple_list = [t for i, t in enumerate(tuple_list) if i not in selected_indices]
+        global_indices = [current_index[0] + i for i in selected_indices]
+
+        removed_tuple_list = [tuple_list[i] for i in global_indices]
+        remaining = [t for i, t in enumerate(tuple_list) if i not in global_indices]
+        tuple_list.clear()
+        tuple_list.extend(remaining)
 
         directlyFollowSet.clear()
         directlyFollowSet.update(tuple_list)
         removedDirectlyFollowSet.update(removed_tuple_list)
+
         print("Removed Constraints:", removed_tuple_list)
+
         for value in removedDirectlyFollowSet:
-            transitivity=find_transitivity_by_removal(df, value[0], value[1], last_activities)
+            transitivity = find_transitivity_by_removal(df, value[0], value[1], last_activities)
             findTransitivityByRemovalSet.update(transitivity)
-        #eventuallyFollowSet-= findTransitivityByRemovalSet
-        #affectedEventuallyFollowSet.union()    
+
         for val in findTransitivityByRemovalSet:
             if val in eventuallyFollowSet:
                 affectedEventuallyFollowSet.add(val)
@@ -133,7 +138,6 @@ def show_tuple_selection(df,last_activities,container, directlyFollowSet, eventu
     def confirm_declare_and_regex():
         generate_declare_and_regex_function(directlyFollowSet)
 
-    #ttk.Button(btn_frame, text="Generate Declare and Regex", state="disabled").pack(side="left", expand=True, padx=0)
     ttk.Button(btn_frame, text="Generate Declare and Regex", command=confirm_declare_and_regex).pack(side="left", expand=True, padx=0)
     ttk.Button(btn_frame, text="Cancel", command=lambda: [var.set(False) for var in check_vars]).pack(side="left", expand=True, padx=0)
     ttk.Button(btn_frame, text="Remove", command=confirm_action).pack(side="left", expand=True, padx=0)
@@ -172,7 +176,7 @@ def main_gui_function(df,last_activities,image_path):
     img_tk = ImageTk.PhotoImage(img)
     canvas.create_image(0, 0, anchor="nw", image=img_tk)
     canvas.image = img_tk
-    #canvas.config(scrollregion=canvas.bbox("all"))
+
      # Set scroll region to full image dimensions
     canvas.config(scrollregion=(0, 0, img.width, img.height))
 
